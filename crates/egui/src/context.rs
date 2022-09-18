@@ -981,6 +981,11 @@ impl Context {
         self.input().pointer.interact_pos()
     }
 
+    #[inline(always)]
+    pub fn pointer_press_origin(&self) -> Option<Pos2> {
+        self.input().pointer.press_origin()
+    }
+
     /// Calls [`InputState::multi_touch`].
     pub fn multi_touch(&self) -> Option<MultiTouchInfo> {
         self.input().multi_touch()

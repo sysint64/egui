@@ -220,11 +220,29 @@ impl SidePanel {
                     ui.memory().set_dragged_id(resize_id);
                 }
                 is_resizing = ui.memory().is_being_dragged(resize_id);
+
                 if is_resizing {
-                    let width = (pointer.x - side.side_x(panel_rect)).abs();
-                    let width =
-                        clamp_to_range(width, width_range.clone()).at_most(available_rect.width());
-                    side.set_rect_width(&mut panel_rect, width);
+                    let resize_rect = ui.memory().panels.resize_origin_rect(resize_id);
+
+                    if let Some(resize_rect) = resize_rect {
+                        if let Some(press_origin) = ui.ctx().pointer_press_origin() {
+                            let pointer_delta = match side {
+                                Side::Left => pointer.x - press_origin.x,
+                                Side::Right => press_origin.x - pointer.x,
+                            };
+
+                            let width = resize_rect.width() + pointer_delta;
+                            let width = clamp_to_range(width, width_range.clone())
+                                .at_most(available_rect.width());
+                            side.set_rect_width(&mut panel_rect, width);
+                        }
+                    } else {
+                        ui.memory()
+                            .panels
+                            .set_resize_origin_rect(resize_id, panel_rect);
+                    }
+                } else {
+                    ui.memory().panels.clear_resize_state(resize_id);
                 }
 
                 let any_down = ui.input().pointer.any_down(); // avoid deadlocks
@@ -507,11 +525,29 @@ impl TopBottomPanel {
                     ui.memory().interaction.drag_id = Some(resize_id);
                 }
                 is_resizing = ui.memory().interaction.drag_id == Some(resize_id);
+
                 if is_resizing {
-                    let height = (pointer.y - side.side_y(panel_rect)).abs();
-                    let height = clamp_to_range(height, height_range.clone())
-                        .at_most(available_rect.height());
-                    side.set_rect_height(&mut panel_rect, height);
+                    let resize_rect = ui.memory().panels.resize_origin_rect(resize_id);
+
+                    if let Some(resize_rect) = resize_rect {
+                        if let Some(press_origin) = ui.ctx().pointer_press_origin() {
+                            let pointer_delta = match side {
+                                TopBottomSide::Top => pointer.y - press_origin.y,
+                                TopBottomSide::Bottom => press_origin.y - pointer.y,
+                            };
+
+                            let height = resize_rect.height() + pointer_delta;
+                            let height = clamp_to_range(height, height_range.clone())
+                                .at_most(available_rect.height());
+                            side.set_rect_height(&mut panel_rect, height);
+                        }
+                    } else {
+                        ui.memory()
+                            .panels
+                            .set_resize_origin_rect(resize_id, panel_rect);
+                    }
+                } else {
+                    ui.memory().panels.clear_resize_state(resize_id);
                 }
 
                 let any_down = ui.input().pointer.any_down(); // avoid deadlocks

@@ -79,6 +79,9 @@ pub struct Memory {
 
     pub(crate) areas: Areas,
 
+    #[cfg_attr(feature = "persistence", serde(skip))]
+    pub(crate) panels: Panels,
+
     /// Which popup-window is open (if any)?
     /// Could be a combo box, color picker, menu etc.
     #[cfg_attr(feature = "persistence", serde(skip))]
@@ -474,6 +477,26 @@ impl Memory {
     /// Experimental feature!
     pub fn set_everything_is_visible(&mut self, value: bool) {
         self.everything_is_visible = value;
+    }
+}
+
+/// Memorize [`Panel`](crate::containers::panel::Panel)s size before it resized.
+#[derive(Clone, Debug, Default)]
+pub struct Panels {
+    resize_origin_rect: IdMap<Rect>,
+}
+
+impl Panels {
+    pub(crate) fn set_resize_origin_rect(&mut self, id: Id, rect: Rect) {
+        self.resize_origin_rect.insert(id, rect);
+    }
+
+    pub(crate) fn resize_origin_rect(&self, id: Id) -> Option<Rect> {
+        self.resize_origin_rect.get(&id).map(|rect| *rect)
+    }
+
+    pub(crate) fn clear_resize_state(&mut self, id: Id) {
+        self.resize_origin_rect.remove(&id);
     }
 }
 
